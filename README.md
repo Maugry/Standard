@@ -26,4 +26,4 @@ Versioning scheme: `1.{year}.{patch}` — e.g. `1.26.0` for the 2026 release.
 
 This specification is an **open standard**. Any implementation following this specification is considered Umka-compatible.
 
-Developed by [Multimedia Solutions Lab Ltd.](https://multilab.ru)
+Developed by [Multimedia Solutions Lab Ltd.](https://maugry.ru)
