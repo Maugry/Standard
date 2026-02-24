@@ -1,6 +1,6 @@
-# Umka Kiosk Standard v1.26.2
+# Umka Kiosk Standard v1.26.3
 
-**Status:** Draft
+**Status:** Active
 **Date:** February 2026
 **License:** Open Standard (Implementation: MIT)
 
@@ -359,12 +359,13 @@ In production deployments, power and app lifecycle commands are handled by a sep
     "status": "running",
     "pid": 1234,
     "lastHeartbeat": "2026-02-08T12:00:00Z",
-    "restartCount": 0
+    "restartCount": 0,
+    "lastCrash": "2026-02-08T11:55:00Z",
+    "crashedVersion": "1.0.0"
   },
   "system": {
     "cpuPercent": 45,
     "memoryPercent": 62,
-    "diskPercent": 78,
     "networkConnected": true
   }
 }
@@ -513,7 +514,6 @@ Received when an IoT device (physical button) triggers content on this kiosk.
   "timestamp": "2026-02-06T10:30:00Z",
   "version": "1.0.0",
   "uptime": 3600,
-  "diskFreeGB": 45.2
 }
 ```
 
@@ -523,7 +523,6 @@ Received when an IoT device (physical button) triggers content on this kiosk.
 | `timestamp` | string | ISO 8601 |
 | `version` | string | App version (semver) |
 | `uptime` | integer | Seconds since app start |
-| `diskFreeGB` | number (optional) | Free disk space |
 
 **Server-side offline detection:**
 - No heartbeat for >30 seconds → mark offline
@@ -737,7 +736,7 @@ In production deployments, system-level control (power, app lifecycle, watchdog)
 - PC power control (power on via WoL, shutdown, reboot)
 - Player lifecycle management (start, stop, restart)
 - Watchdog (automatic player recovery on crash or freeze)
-- System health reporting (CPU, RAM, disk, network)
+- System health reporting (CPU, RAM, network)
 
 **Player responsibilities (content plane):**
 - Content playback and navigation
@@ -769,11 +768,11 @@ On receiving power command via `system/power` topic, the service MUST:
 
 The service implements three-tier recovery when the player is detected as crashed or frozen:
 
-1. **Tier 1 — Graceful restart:** Launch the player, wait 30 seconds
-2. **Tier 2 — Force restart:** Kill the player process, relaunch, wait 30 seconds
-3. **Tier 3 — Circuit breaker:** After 3 failed restarts, stop attempting. Report `player.status = "unresponsive"` in heartbeat
+1. **Tier 1 — Graceful restart:** Launch the player, wait 5 seconds for it to become responsive
+2. **Tier 2 — Force restart:** Kill the player process tree (on Windows: `taskkill /F /T`), relaunch, wait 30 seconds
+3. **Tier 3 — Circuit breaker:** After `maxRestarts` failed restarts (default: 3), stop attempting. Report `player.status = "unresponsive"` in heartbeat
 
-Circuit breaker resets after 5 minutes of healthy player operation.
+Circuit breaker resets after a 30-minute cooldown period (time-based, starting from when the circuit breaker tripped).
 
 ### 9.5 Player Update Coordination
 
@@ -820,7 +819,7 @@ An Umka-compatible player MUST:
 **Production deployments SHOULD:**
 - [ ] Use a separate control plane service for power and lifecycle control
 - [ ] Implement watchdog with tiered recovery
-- [ ] Report system health (CPU, RAM, disk) via service heartbeat
+- [ ] Report system health (CPU, RAM) via service heartbeat
 - [ ] Support update coordination via lock file
 
 **Recommended:**
@@ -854,6 +853,7 @@ The following are explicitly left to each implementation:
 | 1.26.0 | Jan 2026 | Initial standard: Loop, Browse modes, MQTT protocol |
 | 1.26.1 | Feb 2026 | Custom mode, guide-only content, IoT triggers, local-first architecture, CMS-agnostic API |
 | 1.26.2 | Feb 2026 | Control plane separation, hardware-agnostic clarifications, multi-level Browse navigation, power ON command |
+| 1.26.3 | Feb 2026 | Align with Sentinel reference implementation: updated watchdog timings (5s Tier 1, 30-min circuit breaker cooldown), added crash diagnostics to service heartbeat, removed disk metrics from heartbeat schemas |
 
 ---
 
