@@ -22,7 +22,7 @@ Versioning scheme: `1.{year}.{patch}` — e.g. `1.26.0` for the 2026 release.
 
 ## Reference Implementation
 
-[Umka Player](https://github.com/TODO) is the MIT-licensed reference implementation of this standard.
+[Umka Player](https://github.com/Maugry/Player) is the MIT-licensed reference implementation of this standard.
 
 ## License
 
